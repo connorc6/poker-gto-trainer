@@ -365,7 +365,61 @@
 
     <div id="panel-odds" class="theory-panel" style="display:none;">
       <h2>Pot odds calculator</h2>
-      <div id="odds-content"></div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+
+        <!-- Pot odds section -->
+        <div style="background:var(--color-background-secondary);border-radius:10px;padding:14px;border:.5px solid var(--color-border-tertiary);">
+          <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary);margin-bottom:10px;">Pot odds</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div>
+              <label style="font-size:11px;color:var(--color-text-secondary);display:block;margin-bottom:4px;">Current pot (BB)</label>
+              <input id="odds-pot" type="number" min="0" placeholder="e.g. 10" oninput="calcOdds()"
+                style="width:100%;box-sizing:border-box;padding:7px 9px;border-radius:8px;border:.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px;outline:none;">
+            </div>
+            <div>
+              <label style="font-size:11px;color:var(--color-text-secondary);display:block;margin-bottom:4px;">Amount to call (BB)</label>
+              <input id="odds-call" type="number" min="0" placeholder="e.g. 6" oninput="calcOdds()"
+                style="width:100%;box-sizing:border-box;padding:7px 9px;border-radius:8px;border:.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px;outline:none;">
+            </div>
+          </div>
+          <div id="odds-result" style="font-size:13px;color:var(--color-text-secondary);">Enter pot and call amount above.</div>
+        </div>
+
+        <!-- Rule of 2 & 4 section -->
+        <div style="background:var(--color-background-secondary);border-radius:10px;padding:14px;border:.5px solid var(--color-border-tertiary);">
+          <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary);margin-bottom:10px;">Rule of 2 &amp; 4 — outs to equity</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div>
+              <label style="font-size:11px;color:var(--color-text-secondary);display:block;margin-bottom:4px;">Number of outs</label>
+              <input id="odds-outs" type="number" min="0" max="20" placeholder="e.g. 9" oninput="calcOuts()"
+                style="width:100%;box-sizing:border-box;padding:7px 9px;border-radius:8px;border:.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px;outline:none;">
+            </div>
+            <div>
+              <label style="font-size:11px;color:var(--color-text-secondary);display:block;margin-bottom:4px;">Street</label>
+              <select id="odds-street" onchange="calcOuts()"
+                style="width:100%;box-sizing:border-box;padding:7px 9px;border-radius:8px;border:.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px;outline:none;">
+                <option value="flop">Flop (2 streets left × 4)</option>
+                <option value="turn">Turn (1 street left × 2)</option>
+              </select>
+            </div>
+          </div>
+          <div id="outs-result" style="font-size:13px;color:var(--color-text-secondary);">Enter your outs above.</div>
+        </div>
+
+        <!-- Common draws reference -->
+        <div style="background:var(--color-background-secondary);border-radius:10px;padding:14px;border:.5px solid var(--color-border-tertiary);">
+          <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary);margin-bottom:10px;">Common draws</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--color-text-secondary);">Flush draw</span><span style="color:var(--color-text-primary);font-weight:500;">9 outs · ~36% (flop) / ~18% (turn)</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--color-text-secondary);">Open-ended straight</span><span style="color:var(--color-text-primary);font-weight:500;">8 outs · ~32% (flop) / ~16% (turn)</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--color-text-secondary);">Flush + gutshot</span><span style="color:var(--color-text-primary);font-weight:500;">12 outs · ~48% (flop) / ~24% (turn)</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--color-text-secondary);">Gutshot straight</span><span style="color:var(--color-text-primary);font-weight:500;">4 outs · ~16% (flop) / ~8% (turn)</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--color-text-secondary);">Two overcards</span><span style="color:var(--color-text-primary);font-weight:500;">6 outs · ~24% (flop) / ~12% (turn)</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--color-text-secondary);">Set (one pair → trips)</span><span style="color:var(--color-text-primary);font-weight:500;">2 outs · ~8% (flop) / ~4% (turn)</span></div>
+          </div>
+        </div>
+
+      </div>
     </div>
 
     <div id="panel-glossary" class="theory-panel" style="display:none;">
@@ -1222,13 +1276,55 @@ function renderStats(){
 }
 
 function renderOddsPanel(){
-  const betInput=parseFloat(document.getElementById('bet-size')?.value)||0;
+  // Pre-fill from live game state if active
   const pot=mp.active?mp.pot:state.pot;
-  const odds=getPotOdds(pot,betInput);
-  const html=(odds?'<div class="tip info" style="margin-bottom:8px;"><span class="tip-icon">i</span><span class="tip-text"><span class="tip-category">Pot odds for '+betInput+' BB bet</span>Offered '+odds.pct+'% pot odds. Need ≥'+odds.pct+'% equity to call. Your equity: '+state.equity.hero+'% → '+(state.equity.hero>=parseFloat(odds.pct)?'✓ Call profitable':'✗ Fold better')+'</span></div>':
-    '<div style="font-size:13px;color:var(--color-text-secondary);">Enter a bet size to calculate pot odds.</div>')+
-    '<div class="tip info"><span class="tip-icon">i</span><span class="tip-text"><span class="tip-category">Rule of 2 & 4</span>'+(state.board.length===3?'Flop (2 streets): outs × 4. 9 flush outs ≈ 36%':'Turn (1 street): outs × 2. 9 flush outs ≈ 18%')+'</span></div>';
-  document.getElementById('odds-content').innerHTML=html;
+  const potEl=document.getElementById('odds-pot');
+  if(potEl&&pot>3)potEl.value=pot;
+  calcOdds();calcOuts();
+}
+
+function calcOdds(){
+  const pot=parseFloat(document.getElementById('odds-pot')?.value)||0;
+  const call=parseFloat(document.getElementById('odds-call')?.value)||0;
+  const el=document.getElementById('odds-result');
+  if(!el)return;
+  if(!pot||!call){el.style.color='var(--color-text-secondary)';el.textContent='Enter pot and call amount above.';return;}
+  const pct=Math.round(100*call/(pot+call));
+  const hero=state.equity.hero;
+  const hasEquity=hero>0&&hero<100;
+  const verdict=hasEquity?(hero>=pct?'✓ Call is profitable ('+hero+'% equity > '+pct+'% needed)':'✗ Fold — not enough equity ('+hero+'% < '+pct+'% needed)'):'';
+  const color=hasEquity?(hero>=pct?'#27ae60':'#c0392b'):'var(--color-text-primary)';
+  el.innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:6px;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+      '<span style="color:var(--color-text-secondary);">Pot odds offered</span>'+
+      '<span style="font-weight:600;font-size:15px;color:var(--color-text-primary);">'+pct+'%</span></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+      '<span style="color:var(--color-text-secondary);">Breakeven equity needed</span>'+
+      '<span style="font-weight:600;color:var(--color-text-primary);">≥ '+pct+'%</span></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+      '<span style="color:var(--color-text-secondary);">Pot odds ratio</span>'+
+      '<span style="font-weight:600;color:var(--color-text-primary);">'+pot+' : '+call+'</span></div>'+
+    (verdict?'<div style="margin-top:4px;font-weight:600;color:'+color+';">'+verdict+'</div>':'')+
+    '</div>';
+}
+
+function calcOuts(){
+  const outs=parseFloat(document.getElementById('odds-outs')?.value)||0;
+  const street=document.getElementById('odds-street')?.value||'flop';
+  const el=document.getElementById('outs-result');
+  if(!el)return;
+  if(!outs){el.style.color='var(--color-text-secondary)';el.textContent='Enter your outs above.';return;}
+  const mult=street==='flop'?4:2;
+  const approx=Math.min(Math.round(outs*mult),100);
+  el.innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:6px;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+      '<span style="color:var(--color-text-secondary);">'+outs+' outs × '+mult+' (rule of '+mult+')</span>'+
+      '<span style="font-weight:600;font-size:15px;color:var(--color-text-primary);">≈ '+approx+'%</span></div>'+
+    '<div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;">'+
+      (street==='flop'?'Two streets remain — multiply by 4 for a quick estimate.':'One street remains — multiply by 2 for a quick estimate.')+
+    '</div></div>';
 }
 
 function renderRangeChart(containerId,position,heroHand){
