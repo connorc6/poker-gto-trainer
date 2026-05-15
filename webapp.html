@@ -334,19 +334,6 @@
         <span class="bet-pct-lbl" id="bet-pct-label"></span>
       </div>
 
-      <!-- Card entry prompt (manual mode) -->
-      <div id="card-prompt" style="display:none;margin-bottom:10px;padding:10px 12px;background:var(--color-background-secondary);border-radius:10px;border:.5px solid var(--color-border-tertiary);">
-        <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:6px;" id="card-prompt-label">Enter flop cards</div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input type="text" id="card-prompt-input" placeholder="e.g. Ah Ks Td"
-            style="flex:1;padding:7px 10px;border-radius:8px;border:.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px;outline:none;"
-            onkeydown="if(event.key==='Enter')confirmCardPrompt()">
-          <button onclick="confirmCardPrompt()" style="padding:7px 14px;border-radius:8px;background:var(--color-accent,#185FA5);color:#fff;border:none;font-size:13px;font-weight:500;cursor:pointer;">Deal</button>
-          <button onclick="cancelCardPrompt()" style="padding:7px 10px;border-radius:8px;background:transparent;color:var(--color-text-secondary);border:.5px solid var(--color-border-tertiary);font-size:13px;cursor:pointer;">Random</button>
-        </div>
-        <div id="card-prompt-error" style="font-size:12px;color:#c0392b;margin-top:4px;display:none;"></div>
-      </div>
-
       <!-- Action panel — swapped by JS between manual-panel and mp-panel -->
       <div class="action-panel manual-panel" id="action-panel">
         <button class="action-btn fold-btn" id="btn-fold"  onclick="handleAction('fold')">Fold</button>
@@ -1433,34 +1420,42 @@ function updateGameUI(){
   }
 }
 
-// Manual mode: next street — show card entry prompt
+// Manual mode: next street — swap action panel to card entry form
 function nextStreet(){
   if(mp.active)return;
   if(state.stage==='river'||state.stage==='showdown'){showResultManual('showdown');return;}
-  const nextMap={preflop:{name:'flop',label:'Enter flop cards (e.g. Ah Ks Td)',placeholder:'Ah Ks Td',count:3},
-                 flop:   {name:'turn', label:'Enter turn card (e.g. Jc)',        placeholder:'Jc',        count:1},
-                 turn:   {name:'river',label:'Enter river card (e.g. 2s)',       placeholder:'2s',        count:1}};
-  const cfg=nextMap[state.stage];
+  const cfg={
+    preflop:{street:'flop', label:'Enter flop (e.g. Ah Ks Td)', placeholder:'Ah Ks Td', count:3},
+    flop:   {street:'turn', label:'Enter turn card (e.g. Jc)',   placeholder:'Jc',        count:1},
+    turn:   {street:'river',label:'Enter river card (e.g. 2s)',  placeholder:'2s',        count:1}
+  }[state.stage];
   if(!cfg)return;
-  const prompt=document.getElementById('card-prompt');
-  document.getElementById('card-prompt-label').textContent=cfg.label;
-  document.getElementById('card-prompt-input').placeholder=cfg.placeholder;
-  document.getElementById('card-prompt-input').value='';
-  document.getElementById('card-prompt-error').style.display='none';
-  prompt.dataset.count=cfg.count;
-  prompt.dataset.street=cfg.name;
-  prompt.style.display='block';
+
+  const panel=document.getElementById('action-panel');
+  panel.className='action-panel';
+  panel.dataset.pendingStreet=cfg.street;
+  panel.dataset.pendingCount=cfg.count;
+  panel.innerHTML=
+    '<div style="grid-column:1/-1;">'+
+      '<div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:6px;">'+cfg.label+'</div>'+
+      '<div style="display:flex;gap:8px;align-items:center;">'+
+        '<input id="card-prompt-input" type="text" placeholder="'+cfg.placeholder+'" '+
+          'style="flex:1;padding:7px 10px;border-radius:8px;border:.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px;outline:none;" '+
+          'onkeydown="if(event.key===\'Enter\')confirmCardPrompt()">'+
+        '<button onclick="confirmCardPrompt()" style="padding:7px 14px;border-radius:8px;background:#185FA5;color:#fff;border:none;font-size:13px;font-weight:500;cursor:pointer;">Deal</button>'+
+        '<button onclick="cancelCardPrompt()" style="padding:7px 10px;border-radius:8px;background:transparent;color:var(--color-text-secondary);border:.5px solid var(--color-border-tertiary);font-size:13px;cursor:pointer;">Random</button>'+
+      '</div>'+
+      '<div id="card-prompt-error" style="font-size:12px;color:#c0392b;margin-top:4px;display:none;"></div>'+
+    '</div>';
   document.getElementById('card-prompt-input').focus();
-  // Hide action buttons while prompting
-  document.getElementById('action-panel').style.display='none';
 }
 
 function confirmCardPrompt(){
-  const prompt=document.getElementById('card-prompt');
+  const panel=document.getElementById('action-panel');
   const errEl=document.getElementById('card-prompt-error');
   const val=document.getElementById('card-prompt-input').value.trim();
-  const count=parseInt(prompt.dataset.count);
-  const street=prompt.dataset.street;
+  const count=parseInt(panel.dataset.pendingCount);
+  const street=panel.dataset.pendingStreet;
   errEl.style.display='none';
 
   let cards=null;
@@ -1468,28 +1463,31 @@ function confirmCardPrompt(){
     cards=parseCards(val,count);
     if(!cards){
       errEl.textContent='Invalid card'+(count>1?'s. Use format: Ah Ks Td':'. Use format: Jc');
-      errEl.style.display='block';
-      return;
+      errEl.style.display='block';return;
     }
-    // Check for duplicates against hero hand + current board
     const existing=new Set([...state.heroHand.map(c=>c.str),...state.board.map(c=>c.str)]);
     const dup=cards.find(c=>existing.has(c.str));
     if(dup){errEl.textContent=dup.str+' is already in the hand or on the board.';errEl.style.display='block';return;}
   }
-
-  prompt.style.display='none';
-  document.getElementById('action-panel').style.display='';
-
+  restoreManualPanel();
   applyNextStreet(street,cards);
 }
 
 function cancelCardPrompt(){
-  // Deal random cards for this street
-  const prompt=document.getElementById('card-prompt');
-  const street=prompt.dataset.street;
-  prompt.style.display='none';
-  document.getElementById('action-panel').style.display='';
+  const panel=document.getElementById('action-panel');
+  const street=panel.dataset.pendingStreet;
+  restoreManualPanel();
   applyNextStreet(street,null);
+}
+
+function restoreManualPanel(){
+  const panel=document.getElementById('action-panel');
+  panel.className='action-panel manual-panel';
+  panel.innerHTML=
+    '<button class="action-btn fold-btn" onclick="handleAction(\'fold\')">Fold</button>'+
+    '<button class="action-btn" onclick="handleAction(\'check\')">Check</button>'+
+    '<button class="action-btn bet-btn" onclick="handleAction(\'bet\')">Bet / Raise</button>'+
+    '<button class="action-btn next-btn" id="btn-next" onclick="nextStreet()">Next street →</button>';
 }
 
 function applyNextStreet(street,cards){
@@ -1534,8 +1532,6 @@ function resetGame(){
   document.getElementById('stage-badge').textContent='Setup';document.getElementById('stage-badge').className='stage-badge';
   document.getElementById('seats-row').style.display='none';
   document.getElementById('pot-chip').style.display='none';
-  document.getElementById('card-prompt').style.display='none';
-  document.getElementById('action-panel').style.display='';
   const panel=document.getElementById('action-panel');
   panel.className='action-panel manual-panel';
   panel.innerHTML='<button class="action-btn fold-btn" onclick="handleAction(\'fold\')">Fold</button>'+
