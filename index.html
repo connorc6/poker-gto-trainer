@@ -265,22 +265,6 @@
               <input type="number" id="inp-stack" placeholder="100" value="100" min="10" max="500">
             </div>
           </div>
-          <div class="input-row">
-            <div class="input-group">
-              <label>Flop (e.g. Ah Ks Td)</label>
-              <input type="text" id="inp-flop" placeholder="Ah Ks Td" maxlength="9">
-            </div>
-            <div class="input-group">
-              <label>Turn (optional)</label>
-              <input type="text" id="inp-turn" placeholder="Jc" maxlength="3">
-            </div>
-          </div>
-          <div class="input-row single">
-            <div class="input-group">
-              <label>River (optional)</label>
-              <input type="text" id="inp-river" placeholder="2s" maxlength="3">
-            </div>
-          </div>
         </div>
         <div id="random-info" style="display:none; font-size:13px; color:var(--color-text-secondary); margin-bottom:10px; padding:10px; background:var(--color-background-secondary); border-radius:8px; line-height:1.5;">
           A full 6-player hand will be dealt. Each seat gets a hand from their position's range. You'll act in turn order — villains respond automatically.
@@ -348,6 +332,19 @@
       <div class="bet-input-row">
         <input type="number" id="bet-size" placeholder="Bet / raise size (BB)" min="1" style="max-width:200px;">
         <span class="bet-pct-lbl" id="bet-pct-label"></span>
+      </div>
+
+      <!-- Card entry prompt (manual mode) -->
+      <div id="card-prompt" style="display:none;margin-bottom:10px;padding:10px 12px;background:var(--color-background-secondary);border-radius:10px;border:.5px solid var(--color-border-tertiary);">
+        <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:6px;" id="card-prompt-label">Enter flop cards</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="card-prompt-input" placeholder="e.g. Ah Ks Td"
+            style="flex:1;padding:7px 10px;border-radius:8px;border:.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px;outline:none;"
+            onkeydown="if(event.key==='Enter')confirmCardPrompt()">
+          <button onclick="confirmCardPrompt()" style="padding:7px 14px;border-radius:8px;background:var(--color-accent,#185FA5);color:#fff;border:none;font-size:13px;font-weight:500;cursor:pointer;">Deal</button>
+          <button onclick="cancelCardPrompt()" style="padding:7px 10px;border-radius:8px;background:transparent;color:var(--color-text-secondary);border:.5px solid var(--color-border-tertiary);font-size:13px;cursor:pointer;">Random</button>
+        </div>
+        <div id="card-prompt-error" style="font-size:12px;color:#c0392b;margin-top:4px;display:none;"></div>
       </div>
 
       <!-- Action panel — swapped by JS between manual-panel and mp-panel -->
@@ -1390,16 +1387,8 @@ function startHand(){
     const heroStr=document.getElementById('inp-hero').value;
     const heroHand=parseCards(heroStr,2);
     if(!heroHand){errEl.textContent='Invalid hero hand. Use format: Ah Kh';return;}
-    let flop,turn,river;
-    const flopStr=document.getElementById('inp-flop').value;
-    const turnStr=document.getElementById('inp-turn').value;
-    const riverStr=document.getElementById('inp-river').value;
-    if(flopStr.trim()){flop=parseCards(flopStr,3);if(!flop){errEl.textContent='Invalid flop.';return;}}
-    if(turnStr.trim()){turn=parseCards(turnStr,1);if(!turn){errEl.textContent='Invalid turn card.';return;}}
-    if(riverStr.trim()){river=parseCards(riverStr,1);if(!river){errEl.textContent='Invalid river card.';return;}}
-    state.heroHand=heroHand;state.flop=flop||[];state.turn=turn||[];state.river=river||[];
-    if(state.flop.length){state.board=[...state.flop];state.stage='flop';}
-    else{state.board=[];state.stage='preflop';}
+    state.heroHand=heroHand;state.flop=[];state.turn=[];state.river=[];
+    state.board=[];state.stage='preflop';
     state.equity={hero:50,villain:50,tie:0};state.handComplete=false;
     document.getElementById('seats-row').style.display='none';
     document.getElementById('pot-chip').style.display='none';
@@ -1444,17 +1433,78 @@ function updateGameUI(){
   }
 }
 
-// Manual mode: next street
+// Manual mode: next street — show card entry prompt
 function nextStreet(){
   if(mp.active)return;
-  if(state.stage==='preflop'){
+  if(state.stage==='river'||state.stage==='showdown'){showResultManual('showdown');return;}
+  const nextMap={preflop:{name:'flop',label:'Enter flop cards (e.g. Ah Ks Td)',placeholder:'Ah Ks Td',count:3},
+                 flop:   {name:'turn', label:'Enter turn card (e.g. Jc)',        placeholder:'Jc',        count:1},
+                 turn:   {name:'river',label:'Enter river card (e.g. 2s)',       placeholder:'2s',        count:1}};
+  const cfg=nextMap[state.stage];
+  if(!cfg)return;
+  const prompt=document.getElementById('card-prompt');
+  document.getElementById('card-prompt-label').textContent=cfg.label;
+  document.getElementById('card-prompt-input').placeholder=cfg.placeholder;
+  document.getElementById('card-prompt-input').value='';
+  document.getElementById('card-prompt-error').style.display='none';
+  prompt.dataset.count=cfg.count;
+  prompt.dataset.street=cfg.name;
+  prompt.style.display='block';
+  document.getElementById('card-prompt-input').focus();
+  // Hide action buttons while prompting
+  document.getElementById('action-panel').style.display='none';
+}
+
+function confirmCardPrompt(){
+  const prompt=document.getElementById('card-prompt');
+  const errEl=document.getElementById('card-prompt-error');
+  const val=document.getElementById('card-prompt-input').value.trim();
+  const count=parseInt(prompt.dataset.count);
+  const street=prompt.dataset.street;
+  errEl.style.display='none';
+
+  let cards=null;
+  if(val){
+    cards=parseCards(val,count);
+    if(!cards){
+      errEl.textContent='Invalid card'+(count>1?'s. Use format: Ah Ks Td':'. Use format: Jc');
+      errEl.style.display='block';
+      return;
+    }
+    // Check for duplicates against hero hand + current board
+    const existing=new Set([...state.heroHand.map(c=>c.str),...state.board.map(c=>c.str)]);
+    const dup=cards.find(c=>existing.has(c.str));
+    if(dup){errEl.textContent=dup.str+' is already in the hand or on the board.';errEl.style.display='block';return;}
+  }
+
+  prompt.style.display='none';
+  document.getElementById('action-panel').style.display='';
+
+  applyNextStreet(street,cards);
+}
+
+function cancelCardPrompt(){
+  // Deal random cards for this street
+  const prompt=document.getElementById('card-prompt');
+  const street=prompt.dataset.street;
+  prompt.style.display='none';
+  document.getElementById('action-panel').style.display='';
+  applyNextStreet(street,null);
+}
+
+function applyNextStreet(street,cards){
+  const used=[...state.heroHand.map(c=>c.str),...state.board.map(c=>c.str)];
+  if(street==='flop'){
+    if(cards){state.flop=cards;}
+    else{state.flop=[];for(let i=0;i<3;i++){const c=randomCard(used);if(c){state.flop.push(c);used.push(c.str);}}}
     state.board=[...state.flop];state.stage='flop';
-    if(!state.board.length){const used=[...state.heroHand.map(c=>c.str)];for(let i=0;i<3;i++){const c=randomCard([...used]);if(c){state.board.push(c);state.flop.push(c);used.push(c.str);}}}
-  } else if(state.stage==='flop'){
-    let tc=state.turn[0];if(!tc){const used=[...state.heroHand.map(c=>c.str),...state.board.map(c=>c.str)];tc=randomCard(used);state.turn=tc?[tc]:[];}if(tc)state.board.push(tc);state.stage='turn';
-  } else if(state.stage==='turn'){
-    let rc=state.river[0];if(!rc){const used=[...state.heroHand.map(c=>c.str),...state.board.map(c=>c.str)];rc=randomCard(used);state.river=rc?[rc]:[];}if(rc)state.board.push(rc);state.stage='river';
-  } else if(state.stage==='river'||state.stage==='showdown'){ showResultManual('showdown');return; }
+  } else if(street==='turn'){
+    const tc=cards?cards[0]:randomCard(used);
+    state.turn=tc?[tc]:[];if(tc)state.board.push(tc);state.stage='turn';
+  } else if(street==='river'){
+    const rc=cards?cards[0]:randomCard(used);
+    state.river=rc?[rc]:[];if(rc)state.board.push(rc);state.stage='river';
+  }
   updateGameUI();
   logAction('Street: '+state.stage,'neutral');
   renderTips(generateTips(state.stage,state.heroHand,state.board,state.equity,state.position,state.pot,state.stack),'tips-container');
@@ -1484,6 +1534,8 @@ function resetGame(){
   document.getElementById('stage-badge').textContent='Setup';document.getElementById('stage-badge').className='stage-badge';
   document.getElementById('seats-row').style.display='none';
   document.getElementById('pot-chip').style.display='none';
+  document.getElementById('card-prompt').style.display='none';
+  document.getElementById('action-panel').style.display='';
   const panel=document.getElementById('action-panel');
   panel.className='action-panel manual-panel';
   panel.innerHTML='<button class="action-btn fold-btn" onclick="handleAction(\'fold\')">Fold</button>'+
