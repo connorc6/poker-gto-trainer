@@ -214,6 +214,13 @@
   .score-pct.poor  { color:#791F1F; }
   .reset-session-btn { width:100%; margin-top:1rem; padding:8px; border:.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md,8px); background:transparent; color:var(--color-text-secondary); font-size:13px; cursor:pointer; transition:all .1s; }
   .reset-session-btn:hover { background:#FCEBEB; color:#791F1F; border-color:#A32D2D; }
+  /* ── App nav ── */
+  .app-nav { display:flex; background:var(--color-background-primary); border:.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg,12px); padding:4px; margin-bottom:1rem; gap:2px; }
+  .app-nav-tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 4px 7px; border:none; border-radius:8px; background:transparent; cursor:pointer; font-size:11px; color:var(--color-text-secondary); transition:all .15s; line-height:1.2; }
+  .app-nav-tab.active { background:var(--color-background-secondary); color:var(--color-text-primary); font-weight:600; }
+  .app-nav-icon { font-size:19px; line-height:1; }
+  .appview { display:none; }
+  .appview.active { display:block; }
 </style>
 </head>
 <body>
@@ -226,6 +233,25 @@
       <button class="stats-btn" onclick="openStatsModal()">Session stats</button>
     </div>
   </div>
+
+  <!-- ── App nav ── -->
+  <nav class="app-nav">
+    <button class="app-nav-tab active" id="nav-play"     onclick="switchAppTab('play')">
+      <span class="app-nav-icon">🃏</span><span>Play</span>
+    </button>
+    <button class="app-nav-tab" id="nav-ranges"   onclick="switchAppTab('ranges')">
+      <span class="app-nav-icon">📊</span><span>Ranges</span>
+    </button>
+    <button class="app-nav-tab" id="nav-odds"     onclick="switchAppTab('odds')">
+      <span class="app-nav-icon">🧮</span><span>Odds</span>
+    </button>
+    <button class="app-nav-tab" id="nav-glossary" onclick="switchAppTab('glossary')">
+      <span class="app-nav-icon">📖</span><span>Glossary</span>
+    </button>
+  </nav>
+
+  <!-- ── Play appview ── -->
+  <div id="appview-play" class="appview active">
 
   <!-- ── Setup view ── -->
   <div id="setup-view">
@@ -351,8 +377,6 @@
     <div class="section-tabs">
       <button class="tab active" onclick="switchTab('theory')" id="tab-theory">Theory tips</button>
       <button class="tab"        onclick="switchTab('range')"  id="tab-range">Range chart</button>
-      <button class="tab"        onclick="switchTab('odds')"   id="tab-odds">Pot odds</button>
-      <button class="tab"        onclick="switchTab('glossary')" id="tab-glossary">Glossary</button>
     </div>
 
     <div id="panel-theory" class="theory-panel"><h2>GTO coaching tips</h2><div class="tips-list" id="tips-container"></div></div>
@@ -362,12 +386,43 @@
       <div class="pos-selector" id="game-pos-selector"></div>
       <div class="range-chart"  id="range-chart-game"></div>
     </div>
+  </div>
 
-    <div id="panel-odds" class="theory-panel" style="display:none;">
+  <!-- ── Result view ── -->
+  <div id="result-view" style="display:none;">
+    <div class="result-overlay">
+      <div class="result-emoji" id="res-emoji">🏆</div>
+      <div class="result-title" id="res-title">You win!</div>
+      <div class="result-sub"   id="res-sub"></div>
+      <div class="result-score" id="res-score"></div>
+      <div id="showdown-hands" class="showdown-hands"></div>
+      <div id="hand-decision-breakdown" class="decision-breakdown"></div>
+      <div class="tips-list" id="result-tips" style="text-align:left;margin-top:1rem;"></div>
+    </div>
+    <button class="new-hand-btn" onclick="resetGame()">New hand</button>
+  </div>
+
+  </div><!-- /appview-play -->
+
+  <!-- ── Ranges appview ── -->
+  <div id="appview-ranges" class="appview">
+    <div class="theory-panel">
+      <h2>Preflop ranges</h2>
+      <div class="pos-selector" id="nav-pos-selector" style="margin-bottom:1rem;"></div>
+      <div class="range-chart" id="nav-range-chart"></div>
+      <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;">
+        <span style="font-size:11px;color:var(--color-text-secondary);display:flex;align-items:center;gap:4px;"><span style="width:12px;height:12px;background:#185FA5;border-radius:2px;display:inline-block;"></span>Open/raise</span>
+        <span style="font-size:11px;color:var(--color-text-secondary);display:flex;align-items:center;gap:4px;"><span style="width:12px;height:12px;background:#6CA832;border-radius:2px;display:inline-block;"></span>Call</span>
+        <span style="font-size:11px;color:var(--color-text-secondary);display:flex;align-items:center;gap:4px;"><span style="width:12px;height:12px;background:var(--color-background-secondary);border:.5px solid var(--color-border-tertiary);border-radius:2px;display:inline-block;"></span>Fold</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Odds appview ── -->
+  <div id="appview-odds" class="appview">
+    <div class="theory-panel">
       <h2>Pot odds calculator</h2>
       <div style="display:flex;flex-direction:column;gap:14px;">
-
-        <!-- Pot odds section -->
         <div style="background:var(--color-background-secondary);border-radius:10px;padding:14px;border:.5px solid var(--color-border-tertiary);">
           <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary);margin-bottom:10px;">Pot odds</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
@@ -384,8 +439,6 @@
           </div>
           <div id="odds-result" style="font-size:13px;color:var(--color-text-secondary);">Enter pot and call amount above.</div>
         </div>
-
-        <!-- Rule of 2 & 4 section -->
         <div style="background:var(--color-background-secondary);border-radius:10px;padding:14px;border:.5px solid var(--color-border-tertiary);">
           <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary);margin-bottom:10px;">Rule of 2 &amp; 4 — outs to equity</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
@@ -405,8 +458,6 @@
           </div>
           <div id="outs-result" style="font-size:13px;color:var(--color-text-secondary);">Enter your outs above.</div>
         </div>
-
-        <!-- Common draws reference -->
         <div style="background:var(--color-background-secondary);border-radius:10px;padding:14px;border:.5px solid var(--color-border-tertiary);">
           <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary);margin-bottom:10px;">Common draws</div>
           <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
@@ -418,13 +469,15 @@
             <div style="display:flex;justify-content:space-between;"><span style="color:var(--color-text-secondary);">Set (one pair → trips)</span><span style="color:var(--color-text-primary);font-weight:500;">2 outs · ~8% (flop) / ~4% (turn)</span></div>
           </div>
         </div>
-
       </div>
     </div>
+  </div>
 
-    <div id="panel-glossary" class="theory-panel" style="display:none;">
+  <!-- ── Glossary appview ── -->
+  <div id="appview-glossary" class="appview">
+    <div class="theory-panel">
       <h2>Poker glossary</h2>
-      <div id="glossary-search-wrap" style="margin-bottom:1rem;">
+      <div style="margin-bottom:1rem;">
         <input id="glossary-search" type="text" placeholder="Search terms…" oninput="filterGlossary(this.value)"
           style="width:100%;box-sizing:border-box;padding:7px 10px;border-radius:8px;border:.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);color:var(--color-text-primary);font-size:13px;outline:none;">
       </div>
@@ -432,19 +485,6 @@
     </div>
   </div>
 
-  <!-- ── Result view ── -->
-  <div id="result-view" style="display:none;">
-    <div class="result-overlay">
-      <div class="result-emoji" id="res-emoji">🏆</div>
-      <div class="result-title" id="res-title">You win!</div>
-      <div class="result-sub"   id="res-sub"></div>
-      <div class="result-score" id="res-score"></div>
-      <div id="showdown-hands" class="showdown-hands"></div>
-      <div id="hand-decision-breakdown" class="decision-breakdown"></div>
-      <div class="tips-list" id="result-tips" style="text-align:left;margin-top:1rem;"></div>
-    </div>
-    <button class="new-hand-btn" onclick="resetGame()">New hand</button>
-  </div>
 </div>
 
 <!-- Stats modal -->
@@ -606,7 +646,7 @@ function scheduleEquityCalc(){
     } catch(e){ state.equity={hero:50,villain:50,tie:0}; }
     renderEquity();renderStats();
     renderTips(generateTips(state.stage,state.heroHand,state.board,state.equity,state.position,state.pot,state.stack),'tips-container');
-    if(state.activeTab==='odds')renderOddsPanel();
+  
   },20);
 }
 
@@ -1140,7 +1180,7 @@ function doActionManual(action){
     renderStats();
   }
   renderTips(generateTips(state.stage,state.heroHand,state.board,state.equity,state.position,state.pot,state.stack),'tips-container');
-  if(state.activeTab==='odds')renderOddsPanel();
+
 }
 
 function showResultManual(type){
@@ -1352,15 +1392,26 @@ function renderPositionSelector(containerId,active,onSelect){
 function setChartPos(p){state.chartPosition=p;renderPositionSelector('chart-pos-selector',p,'setChartPos');renderRangeChart('range-chart-preview',p,null);}
 function setGameChartPos(p){state.chartPosition=p;renderPositionSelector('game-pos-selector',p,'setGameChartPos');renderRangeChart('range-chart-game',p,state.heroHand);}
 
+let navRangePos='BTN';
+function setNavRangePos(pos){navRangePos=pos;renderPositionSelector('nav-pos-selector',pos,'setNavRangePos');renderRangeChart('nav-range-chart',pos,null);}
+
+function switchAppTab(tab){
+  ['play','ranges','odds','glossary'].forEach(t=>{
+    document.getElementById('appview-'+t).classList.toggle('active',t===tab);
+    document.getElementById('nav-'+t).classList.toggle('active',t===tab);
+  });
+  if(tab==='ranges'){renderPositionSelector('nav-pos-selector',navRangePos,'setNavRangePos');renderRangeChart('nav-range-chart',navRangePos,null);}
+  if(tab==='odds')renderOddsPanel();
+  if(tab==='glossary')renderGlossary('');
+}
+
 function switchTab(tab){
   state.activeTab=tab;
-  ['theory','range','odds','glossary'].forEach(t=>{
+  ['theory','range'].forEach(t=>{
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
     document.getElementById('panel-'+t).style.display=t===tab?'block':'none';
   });
   if(tab==='range'){renderPositionSelector('game-pos-selector',state.position,'setGameChartPos');renderRangeChart('range-chart-game',state.position,state.heroHand);}
-  if(tab==='odds')renderOddsPanel();
-  if(tab==='glossary')renderGlossary('');
 }
 
 const GLOSSARY=[
