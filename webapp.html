@@ -376,16 +376,9 @@
 
     <div class="section-tabs">
       <button class="tab active" onclick="switchTab('theory')" id="tab-theory">Theory tips</button>
-      <button class="tab"        onclick="switchTab('range')"  id="tab-range">Range chart</button>
     </div>
 
     <div id="panel-theory" class="theory-panel"><h2>GTO coaching tips</h2><div class="tips-list" id="tips-container"></div></div>
-
-    <div id="panel-range" class="theory-panel" style="display:none;">
-      <h2>Preflop range chart</h2>
-      <div class="pos-selector" id="game-pos-selector"></div>
-      <div class="range-chart"  id="range-chart-game"></div>
-    </div>
   </div>
 
   <!-- ── Result view ── -->
@@ -745,12 +738,47 @@ function renderStatsModal(){
 
 // ── Range presets ─────────────────────────────────────────────────────────────
 const RANGE_PRESETS={
-  BTN:{open:['AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33','22','AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s','AKo','AQo','AJo','ATo','A9o','KQs','KJs','KTs','K9s','K8s','K7s','KQo','KJo','KTo','QJs','QTs','Q9s','QJo','QTo','JTs','J9s','J8s','JTo','T9s','T8s','98s','97s','87s','76s','65s','54s'],call:[]},
-  CO: {open:['AA','KK','QQ','JJ','TT','99','88','77','66','55','44','AKs','AQs','AJs','ATs','A9s','A8s','A7s','A5s','A4s','AKo','AQo','AJo','ATo','KQs','KJs','KTs','K9s','KQo','KJo','QJs','QTs','Q9s','QJo','JTs','J9s','T9s','T8s','98s','87s','76s','65s'],call:[]},
-  HJ: {open:['AA','KK','QQ','JJ','TT','99','88','77','66','AKs','AQs','AJs','ATs','A9s','A8s','A5s','AKo','AQo','AJo','KQs','KJs','KTs','K9s','KQo','KJo','QJs','QTs','QJo','JTs','T9s','98s','87s'],call:[]},
-  EP: {open:['AA','KK','QQ','JJ','TT','99','88','AKs','AQs','AJs','ATs','AKo','AQo','AJo','KQs','KJs','KQo','QJs'],call:[]},
-  SB: {open:['AA','KK','QQ','JJ','TT','99','88','77','66','55','AKs','AQs','AJs','ATs','A9s','A8s','A7s','A5s','AKo','AQo','AJo','ATo','KQs','KJs','KTs','KQo','KJo','QJs','QTs','JTs','T9s','98s','87s'],call:['44','33','22','A6s','A4s','A3s','A2s','K9s','K8s','Q9s','J9s']},
-  BB: {open:[],call:['AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33','22','AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s','AKo','AQo','AJo','ATo','A9o','KQs','KJs','KTs','K9s','K8s','KQo','KJo','KTo','QJs','QTs','Q9s','QJo','JTs','J9s','T9s','T8s','98s','87s','76s','65s','54s']},
+  EP:{
+    open:['AA','KK','QQ','JJ','TT','99','88',
+          'AKs','AQs','AJs','ATs','KQs','KJs',
+          'AKo','AQo','AJo'],
+    call:[]
+  },
+  HJ:{
+    open:['AA','KK','QQ','JJ','TT','99','88','77','66',
+          'AKs','AQs','AJs','ATs','A9s','KQs','KJs','KTs','QJs','JTs','T9s',
+          'AKo','AQo','AJo','ATo','KQo'],
+    call:[]
+  },
+  CO:{
+    open:['AA','KK','QQ','JJ','TT','99','88','77','66','55','44',
+          'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A5s','A4s',
+          'KQs','KJs','KTs','K9s','QJs','QTs','Q9s','JTs','J9s','T9s','T8s','98s','87s','76s','65s',
+          'AKo','AQo','AJo','ATo','A9o','KQo','KJo','QJo'],
+    call:[]
+  },
+  BTN:{
+    open:['AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33','22',
+          'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
+          'KQs','KJs','KTs','K9s','K8s','K7s','QJs','QTs','Q9s','Q8s','JTs','J9s','J8s','T9s','T8s','98s','97s','87s','86s','76s','75s','65s','64s','54s',
+          'AKo','AQo','AJo','ATo','A9o','A8o','KQo','KJo','KTo','QJo','QTo','JTo'],
+    call:[]
+  },
+  SB:{
+    open:['AA','KK','QQ','JJ','TT','99','88','77','66','55','44',
+          'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s',
+          'KQs','KJs','KTs','K9s','K8s','QJs','QTs','Q9s','JTs','J9s','J8s','T9s','T8s','98s','97s','87s','76s','65s','54s',
+          'AKo','AQo','AJo','ATo','A9o','KQo','KJo','KTo','QJo'],
+    call:['33','22','A3s','A2s','K7s','Q8s','T7s','96s','86s','75s','64s']
+  },
+  BB:{
+    open:[],
+    call:['AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33','22',
+          'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
+          'KQs','KJs','KTs','K9s','K8s','K7s','QJs','QTs','Q9s','Q8s','JTs','J9s','J8s','T9s','T8s','T7s','98s','97s','96s','87s','86s','76s','75s','65s','64s','54s','53s',
+          'AKo','AQo','AJo','ATo','A9o','A8o','A7o','A6o','A5o',
+          'KQo','KJo','KTo','K9o','QJo','QTo','Q9o','JTo','J9o','T9o','98o']
+  }
 };
 
 // ── Global game state ─────────────────────────────────────────────────────────
@@ -1407,11 +1435,10 @@ function switchAppTab(tab){
 
 function switchTab(tab){
   state.activeTab=tab;
-  ['theory','range'].forEach(t=>{
+  ['theory'].forEach(t=>{
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
     document.getElementById('panel-'+t).style.display=t===tab?'block':'none';
   });
-  if(tab==='range'){renderPositionSelector('game-pos-selector',state.position,'setGameChartPos');renderRangeChart('range-chart-game',state.position,state.heroHand);}
 }
 
 const GLOSSARY=[
