@@ -1439,8 +1439,7 @@ function openGridModal(){
   const presets=JSON.stringify(RANGE_PRESETS);
 
   const html=`<!DOCTYPE html>
-<html>
-<head>
+<html><head>
 <meta charset="utf-8">
 <title>Range Grid</title>
 <style>
@@ -1450,211 +1449,376 @@ function openGridModal(){
   .pos-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
   .pos-btn{padding:4px 10px;border:1px solid #444;border-radius:6px;font-size:11px;cursor:pointer;background:#2a2a2a;color:#aaa;transition:all .1s;}
   .pos-btn.active{background:#185FA5;color:#fff;border-color:#185FA5;}
-  .dead-section{background:#242424;border-radius:8px;padding:8px 10px;margin-bottom:8px;}
-  .dead-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:6px;}
-  .dead-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-  .dead-sep{color:#555;font-size:14px;font-weight:300;}
-  select{padding:4px 6px;border-radius:6px;border:1px solid #444;background:#2a2a2a;color:#eee;font-size:12px;cursor:pointer;outline:none;}
-  .clear-btn{padding:4px 10px;border-radius:6px;border:1px solid #444;background:transparent;color:#888;font-size:11px;cursor:pointer;}
+  .section{background:#242424;border-radius:8px;padding:8px 10px;margin-bottom:8px;}
+  .sec-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:6px;}
+  .card-row{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
+  .card-sep{color:#555;font-size:12px;padding:0 2px;}
+  select{padding:3px 4px;border-radius:5px;border:1px solid #444;background:#2a2a2a;color:#eee;font-size:11px;cursor:pointer;outline:none;}
+  .clear-btn{padding:3px 8px;border-radius:5px;border:1px solid #444;background:transparent;color:#888;font-size:11px;cursor:pointer;}
   .clear-btn:hover{color:#eee;border-color:#666;}
-  .dead-display{margin-left:4px;font-size:12px;font-weight:600;color:#D85A30;}
+  .card-display{margin-left:4px;font-size:12px;font-weight:600;color:#D85A30;}
+  .mode-row{display:flex;gap:6px;margin-bottom:8px;align-items:center;}
+  .mode-btn{padding:5px 12px;border-radius:7px;border:1px solid #444;background:#2a2a2a;color:#aaa;font-size:11px;font-weight:500;cursor:pointer;transition:all .1s;}
+  .mode-btn.active{background:#D85A30;color:#fff;border-color:#D85A30;}
+  .mode-status{font-size:10px;color:#666;margin-left:auto;}
   .grid{display:grid;grid-template-columns:repeat(13,1fr);gap:2px;margin-bottom:8px;}
-  .cell{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:600;cursor:default;line-height:1;transition:opacity .1s;}
+  .cell{aspect-ratio:1;border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:8.5px;font-weight:600;cursor:default;line-height:1;gap:1px;transition:background .25s,opacity .1s;}
   .cell:hover{opacity:.72;}
   .cell-suffix{font-size:8.5px;}
+  .cell-eq{font-size:6.5px;font-weight:500;opacity:.88;}
   .open{background:#185FA5;color:#fff;}
   .call{background:#1D9E75;color:#fff;}
   .fold{background:#333;color:#777;}
   .hero{background:#D85A30;color:#fff;outline:2px solid #b34520;}
   .dead{opacity:.28!important;}
+  .eq-strong{background:#0e4d8a;color:#9dd4ff;}
+  .eq-ahead{background:#135e45;color:#7de8b8;}
+  .eq-flip{background:#4a4200;color:#e0c840;}
+  .eq-behind{background:#5e3200;color:#ffaa50;}
+  .eq-weak{background:#4a1515;color:#ff9090;}
   .info{min-height:32px;padding:6px 10px;background:#242424;border-radius:7px;font-size:11px;margin-bottom:7px;line-height:1.5;}
-  .legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
   .leg{display:flex;align-items:center;gap:4px;font-size:10px;color:#888;}
   .dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
   .stats{font-size:10px;color:#666;padding-top:4px;border-top:1px solid #2a2a2a;}
+  .vpos-btn{padding:3px 8px;border:1px solid #444;border-radius:5px;font-size:10px;cursor:pointer;background:#2a2a2a;color:#aaa;transition:all .1s;}
+  .vpos-btn.active{background:#7c3aed;color:#fff;border-color:#7c3aed;}
 </style>
 </head>
 <body>
-<h2>📊 Preflop Range Grid</h2>
+<h2>📊 Hand Grid</h2>
+
 <div class="pos-row" id="pos-row"></div>
 
-<div class="dead-section">
-  <div class="dead-label">Your cards (dead cards)</div>
-  <div class="dead-row">
+<div class="section">
+  <div class="sec-label">Your cards</div>
+  <div class="card-row">
     <select id="r1" onchange="updateDead()"><option value="">--</option></select>
     <select id="s1" onchange="updateDead()"><option value="">--</option></select>
-    <span class="dead-sep">·</span>
+    <span class="card-sep">·</span>
     <select id="r2" onchange="updateDead()"><option value="">--</option></select>
     <select id="s2" onchange="updateDead()"><option value="">--</option></select>
     <button class="clear-btn" onclick="clearDead()">Clear</button>
-    <span class="dead-display" id="dead-display"></span>
+    <span class="card-display" id="dead-display"></span>
   </div>
+</div>
+
+<div class="section">
+  <div class="sec-label">Board cards</div>
+  <div class="card-row" id="board-row"></div>
+</div>
+
+<div class="section">
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <div class="sec-label" style="margin:0;white-space:nowrap;">Villain range:</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;" id="villain-pos-row"></div>
+  </div>
+</div>
+
+<div class="mode-row">
+  <button class="mode-btn active" id="btn-ranges" onclick="setMode('ranges')">Preflop Ranges</button>
+  <button class="mode-btn" id="btn-equity" onclick="setMode('equity')">Equity Map</button>
+  <span class="mode-status" id="mode-status"></span>
 </div>
 
 <div class="grid" id="grid"></div>
 <div class="info" id="info">Hover a hand to see details.</div>
-<div class="legend">
-  <div class="leg"><div class="dot" style="background:#D85A30"></div>Your hand</div>
-  <div class="leg"><div class="dot" style="background:#185FA5"></div>Open/Raise</div>
-  <div class="leg"><div class="dot" style="background:#1D9E75"></div>Call/Defend</div>
-  <div class="leg"><div class="dot" style="background:#333"></div>Fold</div>
-  <div class="leg"><div class="dot" style="background:#555;opacity:.3"></div>Dead</div>
-</div>
+<div class="legend" id="legend"></div>
 <div class="stats" id="stats"></div>
 
 <script>
 const RANKS=['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
 const SUITS=[{v:'s',l:'♠'},{v:'h',l:'♥'},{v:'d',l:'♦'},{v:'c',l:'♣'}];
 const RANGE_PRESETS=${presets};
-let curPos='BTN';
-let dead1=null,dead2=null; // {rank,suit}
+const RANK_VAL={};RANKS.forEach((r,i)=>RANK_VAL[r]=12-i);
+function cardInt(str){return RANK_VAL[str[0]]*4+['s','h','d','c'].indexOf(str[1]);}
 
-// Populate dropdowns
-['r1','r2'].forEach(id=>{
-  const el=document.getElementById(id);
-  RANKS.forEach(r=>el.appendChild(Object.assign(document.createElement('option'),{value:r,textContent:r})));
-});
-['s1','s2'].forEach(id=>{
-  const el=document.getElementById(id);
-  SUITS.forEach(s=>el.appendChild(Object.assign(document.createElement('option'),{value:s.v,textContent:s.l})));
-});
-
-function updateDead(){
-  const r1=document.getElementById('r1').value;
-  const s1=document.getElementById('s1').value;
-  const r2=document.getElementById('r2').value;
-  const s2=document.getElementById('s2').value;
-  dead1=(r1&&s1)?{rank:r1,suit:s1}:null;
-  dead2=(r2&&s2)?{rank:r2,suit:s2}:null;
-  // Prevent same card
-  if(dead1&&dead2&&dead1.rank===dead2.rank&&dead1.suit===dead2.suit)dead2=null;
-  const disp=document.getElementById('dead-display');
-  const fmt=c=>c?c.rank+{s:'♠',h:'♥',d:'♦',c:'♣'}[c.suit]:'';
-  disp.textContent=(dead1||dead2)?fmt(dead1)+(dead1&&dead2?' ':'')+fmt(dead2):'';
-  render(curPos);
+// ── Hand evaluator (ported from main app) ────────────────────────────────────
+const _T5=1e6;
+function _enc(...a){let v=a[0]*_T5;for(let i=1;i<a.length;i++)v+=a[i]*Math.pow(100,a.length-1-i);return v;}
+function eval5(c){
+  const r=[c[0]>>2,c[1]>>2,c[2]>>2,c[3]>>2,c[4]>>2].sort((a,b)=>b-a);
+  const flush=(c[0]&3)===(c[1]&3)&&(c[1]&3)===(c[2]&3)&&(c[2]&3)===(c[3]&3)&&(c[3]&3)===(c[4]&3);
+  let st=r[0]-r[4]===4&&r[0]!==r[1]&&r[1]!==r[2]&&r[2]!==r[3]&&r[3]!==r[4],sh=r[0];
+  if(!st&&r[0]===12&&r[1]===3&&r[2]===2&&r[3]===1&&r[4]===0){st=true;sh=3;}
+  const f={};r.forEach(x=>f[x]=(f[x]||0)+1);
+  const g=Object.entries(f).map(([a,b])=>[+a,+b]).sort((a,b)=>b[1]-a[1]||b[0]-a[0]);
+  if(flush&&st)return _enc(8,sh);if(g[0][1]===4)return _enc(7,g[0][0],g[1][0]);
+  if(g[0][1]===3&&g[1][1]===2)return _enc(6,g[0][0],g[1][0]);if(flush)return _enc(5,r[0],r[1],r[2],r[3],r[4]);
+  if(st)return _enc(4,sh);if(g[0][1]===3)return _enc(3,g[0][0],g[1][0],g[2][0]);
+  if(g[0][1]===2&&g[1][1]===2)return _enc(2,g[0][0],g[1][0],g[2][0]);
+  if(g[0][1]===2)return _enc(1,g[0][0],g[1][0],g[2][0],g[3]?g[3][0]:0);
+  return _enc(0,r[0],r[1],r[2],r[3],r[4]);
+}
+const _DROP2=[];for(let i=0;i<7;i++)for(let j=i+1;j<7;j++)_DROP2.push([i,j]);
+const _five=new Array(5);
+function eval7(cards){
+  let best=-1;
+  for(const [di,dj] of _DROP2){let idx=0;for(let k=0;k<7;k++)if(k!==di&&k!==dj)_five[idx++]=cards[k];const s=eval5(_five);if(s>best)best=s;}
+  return best;
 }
 
+// ── Range expansion ──────────────────────────────────────────────────────────
+function handTypeToCombos(ht){
+  const combos=[];
+  if(ht.length===2){const rv=RANK_VAL[ht[0]];for(let s1=0;s1<4;s1++)for(let s2=s1+1;s2<4;s2++)combos.push([rv*4+s1,rv*4+s2]);}
+  else if(ht.length===3){const r1v=RANK_VAL[ht[0]],r2v=RANK_VAL[ht[1]],su=ht[2]==='s';for(let s1=0;s1<4;s1++)for(let s2=0;s2<4;s2++){if(su?s1===s2:s1!==s2)continue;combos.push([r1v*4+s1,r2v*4+s2]);}}
+  return combos;
+}
+function expandToken(t){
+  const ranks='23456789TJQKA';const ri=r=>ranks.indexOf(r);const res=[];
+  if(t.endsWith('+')){const base=t.slice(0,-1);if(base.length===2&&base[0]===base[1]){for(let i=ri(base[0]);i<ranks.length;i++)res.push(ranks[i]+ranks[i]);}else if(base.length===3){const r1=base[0],r2=base[1],s=base[2];for(let i=ri(r2);i<ri(r1);i++)res.push(r1+ranks[i]+s);}else if(base.length===2){res.push(...expandToken(base+'s'),...expandToken(base+'o'));}}
+  else if(t.includes('-')){const [a,b]=t.split('-');if(a[0]===a[1]){const lo=Math.min(ri(a[0]),ri(b[0])),hi=Math.max(ri(a[0]),ri(b[0]));for(let i=lo;i<=hi;i++)res.push(ranks[i]+ranks[i]);}}
+  else{if(t.length===2&&t[0]===t[1])res.push(t);else if(t.length===3)res.push(t);else if(t.length===2)res.push(t+'s',t+'o');}
+  return res;
+}
+function parseRange(str){
+  const out=new Set();
+  str.replace(/\s/g,'').split(',').forEach(t=>expandToken(t).forEach(h=>out.add(h)));
+  return [...out];
+}
+
+// ── Monte Carlo equity vs range ──────────────────────────────────────────────
+function equityVsRange(heroCombos,villainCombos,boardInts,iters=280){
+  if(!heroCombos.length||!villainCombos.length)return -1;
+  const boardSet=new Set(boardInts);
+  const validHero=heroCombos.filter(([a,b])=>!boardSet.has(a)&&!boardSet.has(b));
+  if(!validHero.length)return -1;
+  let wins=0,trials=0;
+  const avail=new Array(52);
+  for(let it=0;it<iters;it++){
+    const [h1,h2]=validHero[Math.random()*validHero.length|0];
+    const used=new Set([h1,h2,...boardInts]);
+    const vv=villainCombos.filter(([a,b])=>!used.has(a)&&!used.has(b));
+    if(!vv.length)continue;
+    const [v1,v2]=vv[Math.random()*vv.length|0];
+    used.add(v1);used.add(v2);
+    let an=0;for(let k=0;k<52;k++)if(!used.has(k))avail[an++]=k;
+    const need=5-boardInts.length;
+    for(let j=0;j<need;j++){const idx=(Math.random()*(an-j)|0)+j;const tmp=avail[j];avail[j]=avail[idx];avail[idx]=tmp;}
+    const run=[...boardInts];for(let j=0;j<need;j++)run.push(avail[j]);
+    const hs=eval7([h1,h2,...run]);const vs=eval7([v1,v2,...run]);
+    if(hs>vs)wins++;else if(hs===vs)wins+=0.5;
+    trials++;
+  }
+  return trials?Math.round(100*wins/trials):-1;
+}
+
+// ── Compute equity for all 169 hand types in async chunks ───────────────────
+let _equityGen=0;
+async function computeEquityMap(villainPos,boardInts,gen){
+  const pr=RANGE_PRESETS[villainPos]||RANGE_PRESETS.BTN;
+  const villainCombos=[...pr.open,...pr.call].flatMap(handTypeToCombos);
+  const result={};
+  const hands=[];
+  for(let i=0;i<13;i++)for(let j=0;j<13;j++){
+    hands.push(i===j?RANKS[i]+RANKS[i]:i<j?RANKS[i]+RANKS[j]+'s':RANKS[j]+RANKS[i]+'o');
+  }
+  for(let start=0;start<hands.length;start+=20){
+    if(gen!==_equityGen)return null; // stale — abort
+    for(let k=start;k<Math.min(start+20,hands.length);k++){
+      result[hands[k]]=equityVsRange(handTypeToCombos(hands[k]),villainCombos,boardInts);
+    }
+    await new Promise(r=>setTimeout(r,0));
+  }
+  return result;
+}
+
+// ── State ────────────────────────────────────────────────────────────────────
+let curPos='BTN',villainPos='BB';
+let dead1=null,dead2=null;
+let boardCards=[null,null,null,null,null];
+let currentMode='ranges';
+let equityMap=null,computing=false;
+
+// ── Init hero card dropdowns ─────────────────────────────────────────────────
+['r1','r2'].forEach(id=>{const el=document.getElementById(id);RANKS.forEach(r=>el.appendChild(Object.assign(document.createElement('option'),{value:r,textContent:r})));});
+['s1','s2'].forEach(id=>{const el=document.getElementById(id);SUITS.forEach(s=>el.appendChild(Object.assign(document.createElement('option'),{value:s.v,textContent:s.l})));});
+
+// ── Init board card selectors ────────────────────────────────────────────────
+(function(){
+  const row=document.getElementById('board-row');
+  const labels=['F1','F2','F3','T','R'];
+  for(let i=0;i<5;i++){
+    if(i===3||i===4)row.appendChild(Object.assign(document.createElement('span'),{className:'card-sep',textContent:i===3?'|':''}));
+    const rs=document.createElement('select');rs.id=\`br\${i}\`;rs.onchange=updateBoard;
+    rs.appendChild(Object.assign(document.createElement('option'),{value:'',textContent:labels[i]}));
+    RANKS.forEach(r=>rs.appendChild(Object.assign(document.createElement('option'),{value:r,textContent:r})));
+    const ss=document.createElement('select');ss.id=\`bs\${i}\`;ss.onchange=updateBoard;
+    ss.appendChild(Object.assign(document.createElement('option'),{value:'',textContent:'?'}));
+    SUITS.forEach(s=>ss.appendChild(Object.assign(document.createElement('option'),{value:s.v,textContent:s.l})));
+    row.appendChild(rs);row.appendChild(ss);
+    if(i===2)row.appendChild(Object.assign(document.createElement('span'),{className:'card-sep',textContent:'|'}));
+  }
+  const cb=document.createElement('button');cb.className='clear-btn';cb.textContent='Clear';cb.onclick=clearBoard;
+  row.appendChild(cb);
+})();
+
+// ── Init villain position buttons ────────────────────────────────────────────
+(function(){
+  const row=document.getElementById('villain-pos-row');
+  ['EP','HJ','CO','BTN','SB','BB'].forEach(p=>{
+    const b=document.createElement('button');b.className='vpos-btn'+(p===villainPos?' active':'');
+    b.textContent=p;
+    b.onclick=()=>{villainPos=p;document.querySelectorAll('.vpos-btn').forEach(x=>x.classList.toggle('active',x.textContent===p));if(currentMode==='equity')runEquity();};
+    row.appendChild(b);
+  });
+})();
+
+// ── Board ────────────────────────────────────────────────────────────────────
+function updateBoard(){
+  for(let i=0;i<5;i++){
+    const r=document.getElementById(\`br\${i}\`).value,s=document.getElementById(\`bs\${i}\`).value;
+    boardCards[i]=(r&&s)?{rank:r,suit:s}:null;
+  }
+  if(currentMode==='equity')runEquity();else renderGrid(curPos);
+}
+function clearBoard(){
+  for(let i=0;i<5;i++){document.getElementById(\`br\${i}\`).value='';document.getElementById(\`bs\${i}\`).value='';}
+  boardCards=[null,null,null,null,null];
+  if(currentMode==='equity')runEquity();else renderGrid(curPos);
+}
+function getBoardInts(){return boardCards.filter(Boolean).map(c=>cardInt(c.rank+c.suit));}
+
+// ── Dead cards ───────────────────────────────────────────────────────────────
+function updateDead(){
+  const r1v=document.getElementById('r1').value,s1v=document.getElementById('s1').value;
+  const r2v=document.getElementById('r2').value,s2v=document.getElementById('s2').value;
+  dead1=(r1v&&s1v)?{rank:r1v,suit:s1v}:null;
+  dead2=(r2v&&s2v)?{rank:r2v,suit:s2v}:null;
+  if(dead1&&dead2&&dead1.rank===dead2.rank&&dead1.suit===dead2.suit)dead2=null;
+  const fmt=c=>c?c.rank+{s:'♠',h:'♥',d:'♦',c:'♣'}[c.suit]:'';
+  document.getElementById('dead-display').textContent=(dead1||dead2)?fmt(dead1)+(dead1&&dead2?' ':'')+fmt(dead2):'';
+  renderGrid(curPos);
+}
 function clearDead(){
   ['r1','s1','r2','s2'].forEach(id=>document.getElementById(id).value='');
-  dead1=null;dead2=null;
-  document.getElementById('dead-display').textContent='';
-  render(curPos);
+  dead1=null;dead2=null;document.getElementById('dead-display').textContent='';
+  renderGrid(curPos);
 }
 
-// Does a specific card (rank+suit) appear in a hand type?
-// For a hand type like AKs, AKo, AA — returns how many combos contain dead card c
+// ── Combo helpers ─────────────────────────────────────────────────────────────
 function combosRemovedByCard(hand,c){
   if(!c)return 0;
-  const isPair=hand.length===2;
-  const r1=hand[0],r2=isPair?hand[0]:hand[1];
-  const isSuited=hand.endsWith('s');
-  if(isPair){
-    if(c.rank!==r1)return 0;
-    return 3; // one specific card removes 3 of 6 pair combos
-  }
-  if(isSuited){
-    // AKs: AhKh, AsKs, AdKd, AcKc — 4 combos. Dead card removes 1 if rank matches and suit matches
-    if((c.rank===r1||c.rank===r2))return 1;
-    return 0;
-  } else {
-    // AKo: 12 combos. Dead card with matching rank removes 3
-    if(c.rank===r1||c.rank===r2)return 3;
-    return 0;
-  }
+  const isPair=hand.length===2,r1=hand[0],r2=isPair?hand[0]:hand[1];
+  if(isPair)return c.rank===r1?3:0;
+  return(c.rank===r1||c.rank===r2)?(hand.endsWith('s')?1:3):0;
 }
-
-function totalCombos(hand){
-  return hand.length===2?6:hand.endsWith('s')?4:12;
-}
-
-function deadCombos(hand){
-  let removed=combosRemovedByCard(hand,dead1)+combosRemovedByCard(hand,dead2);
-  // Avoid double-counting if both cards same rank
-  const isPair=hand.length===2;
-  if(dead1&&dead2&&!isPair&&dead1.rank===dead2.rank){
-    const r=hand[0],r2=isPair?hand[0]:hand[1];
-    if(dead1.rank===r||dead1.rank===r2)removed=Math.min(removed,totalCombos(hand));
-  }
-  return Math.min(removed,totalCombos(hand));
-}
-
-// Is this hand type completely dead (all combos removed)?
-function isHandDead(hand){
-  if(!dead1&&!dead2)return false;
-  const isPair=hand.length===2;
-  const isSuited=hand.endsWith('s');
-  const r1=hand[0],r2=isPair?hand[0]:hand[1];
-  // Suited hand: both cards must have same suit — dead if either dead card matches rank with that suit
-  if(isSuited){
-    const d1match=dead1&&(dead1.rank===r1||dead1.rank===r2);
-    const d2match=dead2&&(dead2.rank===r1||dead2.rank===r2);
-    // All 4 combos only dead if both ranks are blocked by same-suit dead cards
-    // Simpler: just check if combos reach 0
-    return deadCombos(hand)>=totalCombos(hand);
-  }
-  return deadCombos(hand)>=totalCombos(hand);
-}
-
-// Hero hand type from dead1+dead2
+function totalCombos(hand){return hand.length===2?6:hand.endsWith('s')?4:12;}
+function deadCombos(hand){return Math.min(combosRemovedByCard(hand,dead1)+combosRemovedByCard(hand,dead2),totalCombos(hand));}
+function isHandDead(hand){return deadCombos(hand)>=totalCombos(hand);}
 function heroHandKey(){
   if(!dead1||!dead2)return null;
   const ri=r=>RANKS.indexOf(r);
-  const a=ri(dead1.rank)<=ri(dead2.rank)?dead1:dead2;
-  const b=a===dead1?dead2:dead1;
+  const a=ri(dead1.rank)<=ri(dead2.rank)?dead1:dead2,b=a===dead1?dead2:dead1;
   if(a.rank===b.rank)return a.rank+b.rank;
   return a.rank+b.rank+(dead1.suit===dead2.suit?'s':'o');
 }
 
+// ── Equity color band ─────────────────────────────────────────────────────────
+function eqClass(eq){
+  if(eq>=65)return 'eq-strong';
+  if(eq>=55)return 'eq-ahead';
+  if(eq>=45)return 'eq-flip';
+  if(eq>=35)return 'eq-behind';
+  return 'eq-weak';
+}
+
+// ── Mode toggle ───────────────────────────────────────────────────────────────
+function setMode(m){
+  currentMode=m;
+  document.getElementById('btn-ranges').classList.toggle('active',m==='ranges');
+  document.getElementById('btn-equity').classList.toggle('active',m==='equity');
+  if(m==='equity')runEquity();else{equityMap=null;renderGrid(curPos);renderLegend();}
+}
+
+function runEquity(){
+  equityMap=null;computing=true;
+  const gen=++_equityGen;
+  const boardInts=getBoardInts();
+  const boardCount=boardInts.length;
+  document.getElementById('mode-status').textContent='Computing…';
+  renderGrid(curPos);renderLegend();
+  computeEquityMap(villainPos,boardInts,gen).then(map=>{
+    if(!map)return; // stale
+    equityMap=map;computing=false;
+    const boardLabel=boardCount===0?'preflop':boardCount===3?'flop':boardCount===4?'turn':'river';
+    document.getElementById('mode-status').textContent=\`vs \${villainPos} · \${boardLabel}\`;
+    renderGrid(curPos);renderLegend();
+  });
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
 function render(pos){
   curPos=pos;
-  const pr=RANGE_PRESETS[pos]||RANGE_PRESETS.BTN;
   document.getElementById('pos-row').innerHTML=
     ['BTN','CO','HJ','EP','SB','BB'].map(p=>
       \`<button class="pos-btn\${p===pos?' active':''}" onclick="render('\${p}')">\${p}</button>\`
     ).join('');
+  renderGrid(pos);renderLegend();renderStats(pos);
+}
 
+function renderGrid(pos){
+  const pr=RANGE_PRESETS[pos]||RANGE_PRESETS.BTN;
   const heroKey=heroHandKey();
-
   let html='';
   for(let i=0;i<13;i++)for(let j=0;j<13;j++){
-    let hand;
-    if(i===j)hand=RANKS[i]+RANKS[i];
-    else if(i<j)hand=RANKS[i]+RANKS[j]+'s'; // suited: top-right
-    else hand=RANKS[j]+RANKS[i]+'o';          // offsuit: bottom-left
-    const inOpen=pr.open.includes(hand);
-    const inCall=pr.call.includes(hand);
-    const isHero=hand===heroKey;
-    const isDead=!isHero&&isHandDead(hand);
-    let cls=isHero?'hero':inOpen?'open':inCall?'call':'fold';
-    if(isDead)cls+=' dead';
-    const status=inOpen?'open':inCall?'call':'fold';
-    // Label: pairs show 'AA', suited show 'AK'+'s', offsuit show 'AK'+'o'
-    const rankPart=hand.slice(0,2);
+    const hand=i===j?RANKS[i]+RANKS[i]:i<j?RANKS[i]+RANKS[j]+'s':RANKS[j]+RANKS[i]+'o';
+    const inOpen=pr.open.includes(hand),inCall=pr.call.includes(hand);
+    const isHero=hand===heroKey,isDead=!isHero&&isHandDead(hand);
     const suffix=i===j?'':(i<j?'s':'o');
-    const label=\`<span style="display:inline-flex;align-items:flex-end;gap:0.5px">\${rankPart}\${suffix?\`<span class="cell-suffix">\${suffix}</span>\`:''}</span>\`;
+    const label=\`<span style="display:inline-flex;align-items:flex-end;gap:0.5px">\${hand.slice(0,2)}\${suffix?\`<span class="cell-suffix">\${suffix}</span>\`:''}</span>\`;
     const dc=deadCombos(hand),tc=totalCombos(hand);
-    html+=\`<div class="cell \${cls}" onmouseenter="hover('\${hand}','\${status}',\${tc},\${dc})" onmouseleave="clearInfo()">\${label}</div>\`;
+    let cls,eqVal=-1;
+    if(isHero){cls='hero';}
+    else if(currentMode==='equity'&&equityMap){eqVal=equityMap[hand]??-1;cls=eqVal>=0?eqClass(eqVal):'fold';}
+    else{cls=inOpen?'open':inCall?'call':'fold';}
+    if(isDead)cls+=' dead';
+    const eqLabel=(currentMode==='equity'&&equityMap&&!isHero&&eqVal>=0)?\`<span class="cell-eq">\${eqVal}%</span>\`:'';
+    html+=\`<div class="cell \${cls}" onmouseenter="hover('\${hand}','\${inOpen?'open':inCall?'call':'fold'}',\${tc},\${dc},\${eqVal})" onmouseleave="clearInfo()">\${label}\${eqLabel}</div>\`;
   }
-  document.getElementById('grid').innerHTML=html;
+  document.getElementById('grid').innerHTML=computing?'<div style="grid-column:1/-1;text-align:center;padding:18px 0;font-size:11px;color:#888;">⚙️ Computing equity…</div>':html;
+}
 
-  // Stats
-  function countCombos(hands){return hands.reduce((s,h)=>s+(h.length===2?6:h.endsWith('s')?4:12),0);}
-  const oc=countCombos(pr.open),cc=countCombos(pr.call);
-  const pct=Math.round(100*(oc+cc)/1326);
+function renderLegend(){
+  const el=document.getElementById('legend');
+  if(currentMode==='equity'){
+    el.innerHTML=
+      \`<div class="leg"><div class="dot" style="background:#0e4d8a"></div>&gt;65%</div>\`+
+      \`<div class="leg"><div class="dot" style="background:#135e45"></div>55–65%</div>\`+
+      \`<div class="leg"><div class="dot" style="background:#4a4200"></div>45–55%</div>\`+
+      \`<div class="leg"><div class="dot" style="background:#5e3200"></div>35–45%</div>\`+
+      \`<div class="leg"><div class="dot" style="background:#4a1515"></div>&lt;35%</div>\`+
+      \`<div class="leg"><div class="dot" style="background:#D85A30"></div>Your hand</div>\`;
+  } else {
+    el.innerHTML=
+      \`<div class="leg"><div class="dot" style="background:#D85A30"></div>Your hand</div>\`+
+      \`<div class="leg"><div class="dot" style="background:#185FA5"></div>Open/Raise</div>\`+
+      \`<div class="leg"><div class="dot" style="background:#1D9E75"></div>Call/Defend</div>\`+
+      \`<div class="leg"><div class="dot" style="background:#333"></div>Fold</div>\`+
+      \`<div class="leg"><div class="dot" style="background:#555;opacity:.35"></div>Dead</div>\`;
+  }
+}
+
+function renderStats(pos){
+  const pr=RANGE_PRESETS[pos]||RANGE_PRESETS.BTN;
+  const cnt=hs=>hs.reduce((s,h)=>s+(h.length===2?6:h.endsWith('s')?4:12),0);
+  const oc=cnt(pr.open),cc=cnt(pr.call),pct=Math.round(100*(oc+cc)/1326);
   document.getElementById('stats').innerHTML=
     \`<span style="color:#185FA5;font-weight:600;">\${oc} open combos</span> &nbsp;·&nbsp; \`+
     \`<span style="color:#1D9E75;font-weight:600;">\${cc} call combos</span> &nbsp;·&nbsp; \`+
     \`<span style="color:#ddd;font-weight:600;">\${pct}% of all hands</span>\`;
 }
 
-function hover(hand,status,total,dead){
+function hover(hand,status,total,dead,eq){
   const isPair=hand.length===2,isSuited=hand.endsWith('s');
   const avail=total-dead;
   const lbl=status==='open'?'✅ Open/Raise':status==='call'?'🟢 Call/Defend':'❌ Fold';
   const type=isPair?'Pair':isSuited?'Suited':'Offsuit';
   const deadNote=dead>0?\` &nbsp;<span style="color:#D85A30">(\${dead} dead → \${avail} left)</span>\`:'';
+  const eqNote=(currentMode==='equity'&&eq>=0)?\` &nbsp;·&nbsp; <strong style="color:#9dd4ff">Equity: \${eq}%</strong>\`:'';
   document.getElementById('info').innerHTML=
-    \`<strong>\${hand}</strong> &nbsp;·&nbsp; \${type} &nbsp;·&nbsp; \${total} combos\${deadNote} &nbsp;·&nbsp; \${lbl}\`;
+    \`<strong>\${hand}</strong> &nbsp;·&nbsp; \${type} &nbsp;·&nbsp; \${total} combos\${deadNote} &nbsp;·&nbsp; \${lbl}\${eqNote}\`;
 }
 function clearInfo(){document.getElementById('info').textContent='Hover a hand to see details.';}
 
@@ -1670,7 +1834,7 @@ render('BTN');
     _gridPopup.focus();
     return;
   }
-  const w=500,h=720;
+  const w=520,h=820;
   const left=Math.round(window.screenX+window.outerWidth+10);
   const top=Math.round(window.screenY);
   _gridPopup=window.open('','_blank',
