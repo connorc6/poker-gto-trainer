@@ -1444,28 +1444,28 @@ function openGridModal(){
 <title>Range Grid</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#1a1a1a;color:#f0f0f0;padding:12px 12px 20px;overflow-y:auto;}
-  h2{font-size:13px;font-weight:600;margin-bottom:8px;color:#fff;}
-  .pos-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
-  .pos-btn{padding:4px 10px;border:1px solid #444;border-radius:6px;font-size:11px;cursor:pointer;background:#2a2a2a;color:#aaa;transition:all .1s;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#1a1a1a;color:#f0f0f0;padding:clamp(6px,2vw,16px);overflow-y:auto;min-width:300px;}
+  h2{font-size:clamp(11px,2.4vw,17px);font-weight:600;margin-bottom:clamp(4px,1vw,10px);color:#fff;}
+  .pos-row{display:flex;gap:clamp(3px,0.8vw,6px);flex-wrap:wrap;margin-bottom:clamp(4px,1vw,9px);}
+  .pos-btn{padding:clamp(2px,0.6vw,5px) clamp(5px,1.6vw,12px);border:1px solid #444;border-radius:6px;font-size:clamp(9px,1.9vw,13px);cursor:pointer;background:#2a2a2a;color:#aaa;transition:all .1s;}
   .pos-btn.active{background:#185FA5;color:#fff;border-color:#185FA5;}
-  .section{background:#242424;border-radius:8px;padding:8px 10px;margin-bottom:8px;}
-  .sec-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:6px;}
-  .card-row{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
-  .card-sep{color:#555;font-size:12px;padding:0 2px;}
-  select{padding:3px 4px;border-radius:5px;border:1px solid #444;background:#2a2a2a;color:#eee;font-size:11px;cursor:pointer;outline:none;}
-  .clear-btn{padding:3px 8px;border-radius:5px;border:1px solid #444;background:transparent;color:#888;font-size:11px;cursor:pointer;}
+  .section{background:#242424;border-radius:8px;padding:clamp(5px,1.2vw,10px) clamp(6px,1.6vw,12px);margin-bottom:clamp(4px,1vw,8px);}
+  .sec-label{font-size:clamp(7px,1.5vw,10px);font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:clamp(3px,0.7vw,6px);}
+  .card-row{display:flex;gap:clamp(2px,0.6vw,5px);align-items:center;flex-wrap:wrap;}
+  .card-sep{color:#555;font-size:clamp(9px,1.8vw,13px);padding:0 clamp(1px,0.3vw,3px);}
+  select{padding:clamp(2px,0.5vw,4px) clamp(2px,0.5vw,5px);border-radius:5px;border:1px solid #444;background:#2a2a2a;color:#eee;font-size:clamp(9px,1.8vw,12px);cursor:pointer;outline:none;}
+  .clear-btn{padding:clamp(2px,0.5vw,4px) clamp(5px,1.2vw,9px);border-radius:5px;border:1px solid #444;background:transparent;color:#888;font-size:clamp(9px,1.8vw,12px);cursor:pointer;}
   .clear-btn:hover{color:#eee;border-color:#666;}
-  .card-display{margin-left:4px;font-size:12px;font-weight:600;color:#D85A30;}
-  .mode-row{display:flex;gap:6px;margin-bottom:8px;align-items:center;}
-  .mode-btn{padding:5px 12px;border-radius:7px;border:1px solid #444;background:#2a2a2a;color:#aaa;font-size:11px;font-weight:500;cursor:pointer;transition:all .1s;}
+  .card-display{margin-left:clamp(2px,0.5vw,5px);font-size:clamp(10px,2vw,14px);font-weight:600;color:#D85A30;}
+  .mode-row{display:flex;gap:clamp(4px,1vw,7px);margin-bottom:clamp(4px,1vw,8px);align-items:center;}
+  .mode-btn{padding:clamp(3px,0.8vw,6px) clamp(8px,2vw,14px);border-radius:7px;border:1px solid #444;background:#2a2a2a;color:#aaa;font-size:clamp(9px,1.9vw,13px);font-weight:500;cursor:pointer;transition:all .1s;}
   .mode-btn.active{background:#D85A30;color:#fff;border-color:#D85A30;}
-  .mode-status{font-size:10px;color:#666;margin-left:auto;}
-  .grid{display:grid;grid-template-columns:repeat(13,1fr);gap:2px;margin-bottom:8px;}
-  .cell{aspect-ratio:1;border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:8.5px;font-weight:600;cursor:default;line-height:1;gap:1px;transition:background .25s,opacity .1s;}
+  .mode-status{font-size:clamp(8px,1.5vw,10px);color:#666;margin-left:auto;}
+  .grid{display:grid;grid-template-columns:repeat(13,1fr);gap:clamp(1px,0.35vw,3px);margin-bottom:clamp(4px,1vw,8px);}
+  .cell{aspect-ratio:1;border-radius:clamp(2px,0.4vw,4px);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:clamp(6px,1.55vw,12px);font-weight:600;cursor:default;line-height:1;gap:clamp(0px,0.2vw,2px);transition:background .25s,opacity .1s;}
   .cell:hover{opacity:.72;}
-  .cell-suffix{font-size:8.5px;}
-  .cell-eq{font-size:6.5px;font-weight:500;opacity:.88;}
+  .cell-suffix{font-size:clamp(6px,1.55vw,12px);}
+  .cell-eq{font-size:clamp(4.5px,1.05vw,8px);font-weight:500;opacity:.88;}
   .open{background:#185FA5;color:#fff;}
   .call{background:#1D9E75;color:#fff;}
   .fold{background:#333;color:#777;}
@@ -1476,12 +1476,12 @@ function openGridModal(){
   .eq-flip{background:#4a4200;color:#e0c840;}
   .eq-behind{background:#5e3200;color:#ffaa50;}
   .eq-weak{background:#4a1515;color:#ff9090;}
-  .info{min-height:32px;padding:6px 10px;background:#242424;border-radius:7px;font-size:11px;margin-bottom:7px;line-height:1.5;}
-  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
-  .leg{display:flex;align-items:center;gap:4px;font-size:10px;color:#888;}
-  .dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
-  .stats{font-size:10px;color:#666;padding-top:4px;border-top:1px solid #2a2a2a;}
-  .vpos-btn{padding:3px 8px;border:1px solid #444;border-radius:5px;font-size:10px;cursor:pointer;background:#2a2a2a;color:#aaa;transition:all .1s;}
+  .info{min-height:clamp(28px,5vw,38px);padding:clamp(4px,1vw,8px) clamp(6px,1.5vw,12px);background:#242424;border-radius:7px;font-size:clamp(9px,1.9vw,13px);margin-bottom:clamp(4px,1vw,8px);line-height:1.5;}
+  .legend{display:flex;gap:clamp(5px,1.2vw,10px);flex-wrap:wrap;margin-bottom:clamp(4px,1vw,7px);}
+  .leg{display:flex;align-items:center;gap:clamp(3px,0.6vw,5px);font-size:clamp(8px,1.6vw,11px);color:#888;}
+  .dot{width:clamp(7px,1.4vw,10px);height:clamp(7px,1.4vw,10px);border-radius:2px;flex-shrink:0;}
+  .stats{font-size:clamp(8px,1.6vw,11px);color:#666;padding-top:clamp(3px,0.7vw,5px);border-top:1px solid #2a2a2a;}
+  .vpos-btn{padding:clamp(2px,0.5vw,4px) clamp(5px,1.2vw,9px);border:1px solid #444;border-radius:5px;font-size:clamp(8px,1.7vw,11px);cursor:pointer;background:#2a2a2a;color:#aaa;transition:all .1s;}
   .vpos-btn.active{background:#7c3aed;color:#fff;border-color:#7c3aed;}
 </style>
 </head>
