@@ -550,6 +550,38 @@ function eval7(cards){
 const CAT_NAMES=['High card','One pair','Two pair','Three of a kind','Straight','Flush','Full house','Four of a kind','Straight flush'];
 function catName(score){ return score<0?'--':CAT_NAMES[Math.floor(score/_T5)]||'--'; }
 
+// Evaluate best 5-card hand from 5, 6, or 7 cards (int form)
+function evalBest(cards){
+  if(cards.length===5)return eval5(cards);
+  if(cards.length===7)return eval7(cards);
+  if(cards.length===6){
+    let best=-1;
+    for(let i=0;i<6;i++){const five=cards.filter((_,idx)=>idx!==i);const s=eval5(five);if(s>best)best=s;}
+    return best;
+  }
+  return -1;
+}
+
+// Count "improvement outs" — remaining cards that bump the hand into a better
+// category (pair→two pair, draw→flush/straight, etc). Uses the real evaluator
+// rather than a suit/rank heuristic, so it naturally catches flush draws,
+// straight draws (open + gutshot), overcards, and backdoor improvements alike.
+// Only meaningful pre-river (board has 3 or 4 cards).
+function countOuts(hand,board){
+  if(!hand||hand.length<2||!board||board.length<3||board.length>=5)return 0;
+  const holeInts=hand.map(cardInt),boardInts=board.map(cardInt);
+  const curCards=[...holeInts,...boardInts];
+  const curCat=Math.floor(evalBest(curCards)/_T5);
+  const used=new Set(curCards);
+  let outs=0;
+  for(let c=0;c<52;c++){
+    if(used.has(c))continue;
+    const cat=Math.floor(evalBest([...curCards,c])/_T5);
+    if(cat>curCat)outs++;
+  }
+  return outs;
+}
+
 // ── Range expansion ───────────────────────────────────────────────────────────
 function handTypeToCombos(ht){
   const combos=[];
@@ -965,26 +997,42 @@ function getVillainPreflopDec(player){
   return{action:'fold'};
 }
 
+// Later position = wider bluffing/semi-bluffing range (proxy for positional
+// awareness — a villain acting with more information behind them bluffs more).
+const POS_AGGRESSION={EP:0.75,HJ:0.85,CO:1.0,BTN:1.15,SB:0.8,BB:0.9};
+
 function getVillainPostflopDec(player){
   if(!player.hand||player.hand.length<2||state.board.length<3)return{action:'check'};
   const cards=[...player.hand,...state.board].map(cardInt);
-  let score;try{score=cards.length>=7?eval7(cards):cards.length>=5?eval5(cards.slice(0,5)):-1;}catch(e){score=-1;}
+  let score;try{score=evalBest(cards);}catch(e){score=-1;}
   const cat=score>=0?Math.floor(score/_T5):0;
   const callAmt=mp.currentBet-player.currentStreetBet;
   const pctSizes=[0.33,0.5,0.67,0.75];const rs=()=>Math.round(mp.pot*pctSizes[(Math.random()*pctSizes.length)|0]);
+
+  // Draw awareness: real outs-to-improve via the evaluator (flush/straight/etc)
+  let outs=0;try{outs=countOuts(player.hand,state.board);}catch(e){}
+  const hasStrongDraw=outs>=8;  // flush draw / open-ended straight territory
+  const hasWeakDraw=outs>=4&&outs<8; // gutshot / overcards
+  const posAggr=POS_AGGRESSION[player.position]??1;
 
   if(mp.currentBet>0){
     if(cat>=5)return{action:'call',amount:callAmt};
     if(cat>=3&&Math.random()<0.82)return{action:'call',amount:callAmt};
     if(cat>=2&&Math.random()<0.65)return{action:'call',amount:callAmt};
     if(cat>=1&&Math.random()<0.40)return{action:'call',amount:callAmt};
+    // Semi-bluff continues — a made-hand-less villain with real equity sticks around
+    if(hasStrongDraw&&Math.random()<0.68*posAggr)return{action:'call',amount:callAmt};
+    if(hasWeakDraw&&Math.random()<0.32*posAggr)return{action:'call',amount:callAmt};
     if(Math.random()<0.10)return{action:'call',amount:callAmt};
     return{action:'fold'};
   } else {
     if(cat>=5||(cat>=3&&Math.random()<0.8))return{action:'bet',amount:rs()};
     if(cat>=2&&Math.random()<0.55)return{action:'bet',amount:rs()};
     if(cat>=1&&Math.random()<0.28)return{action:'bet',amount:Math.round(mp.pot*0.33)};
-    if(Math.random()<0.14)return{action:'bet',amount:Math.round(mp.pot*0.5)};
+    // Semi-bluff bets with draws, scaled by position (later position bluffs more)
+    if(hasStrongDraw&&Math.random()<0.45*posAggr)return{action:'bet',amount:rs()};
+    if(hasWeakDraw&&Math.random()<0.20*posAggr)return{action:'bet',amount:Math.round(mp.pot*0.33)};
+    if(Math.random()<0.14*posAggr)return{action:'bet',amount:Math.round(mp.pot*0.5)};
     return{action:'check'};
   }
 }
